@@ -3,6 +3,7 @@ package mcp
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"
@@ -234,17 +235,22 @@ func (s *GenshinStarcraftMCPServer) handleGetNodeGraphs(ctx context.Context, req
 		return mcp.NewToolResultError(fmt.Sprintf("获取节点图列表失败: %v", err)), nil
 	}
 
-	// 格式化返回内容
-	content := fmt.Sprintf("# 节点图列表 (%s - %s)\n\n", clientType, nodeType)
+	// 格式化返回内容，使用多级列表格式
+	var content strings.Builder
+	content.WriteString(fmt.Sprintf("# 节点图列表\n\n"))
+
+	// 添加分类信息
+	content.WriteString(fmt.Sprintf("- **分类：%s - %s**\n", clientType, nodeType))
+
 	if len(nodeGraphs) == 0 {
-		content += "未找到相关节点图"
+		content.WriteString("  - 未找到相关节点图\n")
 	} else {
-		for i, node := range nodeGraphs {
-			content += fmt.Sprintf("%d. **%s**\n   %s\n\n", i+1, node.Name, node.Description)
+		for _, node := range nodeGraphs {
+			content.WriteString(fmt.Sprintf("  - **%s**: %s\n", node.Name, node.Description))
 		}
 	}
 
-	return mcp.NewToolResultText(content), nil
+	return mcp.NewToolResultText(content.String()), nil
 }
 
 // handleGetNodeGraphDetails 处理获取节点图详情请求
