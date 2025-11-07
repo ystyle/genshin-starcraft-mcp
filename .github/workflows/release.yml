@@ -58,10 +58,8 @@ jobs:
         tar -czf ../genshin-starcraft-mcp-${version}_darwin-arm64.tar.gz genshin-starcraft-mcp-macos-arm64
 
     - name: Upload release assets
-      uses: softprops/action-gh-release@v1
+      uses: alexellis/upload-assets@0.2.2
       with:
-        files: |
-          genshin-starcraft-mcp-*.zip
-          genshin-starcraft-mcp-*.tar.gz
+        asset_paths: '["./genshin-starcraft-mcp-*.zip", "./genshin-starcraft-mcp-*.tar.gz"]'
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
