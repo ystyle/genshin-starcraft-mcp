@@ -16,11 +16,12 @@ import (
 type GenshinStarcraftMCPServer struct {
 	browser *scraper.Browser
 	server  *server.MCPServer
+	version string
 }
 
 // NewGenshinStarcraftMCPServer 创建新的MCP服务器
-func NewGenshinStarcraftMCPServer() (*GenshinStarcraftMCPServer, error) {
-	utils.Debug("Creating new MCP server with official library")
+func NewGenshinStarcraftMCPServer(version string) (*GenshinStarcraftMCPServer, error) {
+	utils.Debug("Creating new MCP server with official library", "version", version)
 
 	browser, err := scraper.NewBrowser()
 	if err != nil {
@@ -100,6 +101,7 @@ func NewGenshinStarcraftMCPServer() (*GenshinStarcraftMCPServer, error) {
 	genshinServer := &GenshinStarcraftMCPServer{
 		browser: browser,
 		server:  s,
+		version: version,
 	}
 
 	// 添加工具处理器
@@ -110,7 +112,7 @@ func NewGenshinStarcraftMCPServer() (*GenshinStarcraftMCPServer, error) {
 	s.AddTool(nodeGraphsTool, genshinServer.handleGetNodeGraphs)
 	s.AddTool(nodeGraphDetailsTool, genshinServer.handleGetNodeGraphDetails)
 
-	utils.Debug("MCP server created successfully with official library")
+	utils.Debug("MCP server created successfully with official library", "version", version)
 	return genshinServer, nil
 }
 
@@ -125,7 +127,7 @@ func (s *GenshinStarcraftMCPServer) Close() error {
 
 // Start 启动MCP服务器
 func (s *GenshinStarcraftMCPServer) Start() error {
-	utils.Debug("Starting MCP server with official library")
+	utils.Debug("Starting MCP server with official library", "version", s.version)
 	return server.ServeStdio(s.server)
 }
 

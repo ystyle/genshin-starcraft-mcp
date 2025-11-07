@@ -7,16 +7,18 @@ import (
 	"genshin-starcraft-mcp/pkg/utils"
 )
 
+var version = "dev"
+
 func main() {
 	// 初始化日志系统
 	if err := utils.InitLogger(); err != nil {
 		os.Exit(1)
 	}
 
-	utils.Info("Starting Genshin Starcraft MCP Server...")
+	utils.Info("Starting Genshin Starcraft MCP Server...", "version", version)
 
 	// 创建MCP服务器
-	server, err := mcp.NewGenshinStarcraftMCPServer()
+	server, err := mcp.NewGenshinStarcraftMCPServer(version)
 	if err != nil {
 		utils.Error("Failed to create MCP server", "error", err)
 		os.Exit(1)
