@@ -7,6 +7,7 @@ import (
 
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"
+	"genshin-starcraft-mcp/pkg/models"
 	"genshin-starcraft-mcp/pkg/scraper"
 	"genshin-starcraft-mcp/pkg/utils"
 )
@@ -235,18 +236,54 @@ func (s *GenshinStarcraftMCPServer) handleGetNodeGraphs(ctx context.Context, req
 		return mcp.NewToolResultError(fmt.Sprintf("获取节点图列表失败: %v", err)), nil
 	}
 
-	// 格式化返回内容，使用多级列表格式
-	var content strings.Builder
-	content.WriteString(fmt.Sprintf("# 节点图列表\n\n"))
+	// 调试：打印前几个节点的分类信息
+	for i := 0; i < len(nodeGraphs) && i < 5; i++ {
+		node := nodeGraphs[i]
+		utils.Debug("Node info", "index", i, "name", node.Name, "category", node.Category, "description", node.Description)
+	}
 
-	// 添加分类信息
-	content.WriteString(fmt.Sprintf("- **分类：%s - %s**\n", clientType, nodeType))
+	// 格式化返回内容，按h1分类分组显示
+	var content strings.Builder
+	content.WriteString(fmt.Sprintf("# 节点图列表 (%s - %s)\n\n", clientType, nodeType))
 
 	if len(nodeGraphs) == 0 {
-		content.WriteString("  - 未找到相关节点图\n")
+		content.WriteString("未找到相关节点图\n")
 	} else {
+		// 按分类分组节点
+		categoryGroups := make(map[string][]models.NodeGraphItem)
+		var categories []string
+
 		for _, node := range nodeGraphs {
-			content.WriteString(fmt.Sprintf("  - **%s**: %s\n", node.Name, node.Description))
+			category := node.Category
+			if category == "" {
+				category = "未分类"
+			}
+
+			// 如果是新的分类，添加到分类列表
+			found := false
+			for _, existingCategory := range categories {
+				if existingCategory == category {
+					found = true
+					break
+				}
+			}
+			if !found {
+				categories = append(categories, category)
+			}
+
+			categoryGroups[category] = append(categoryGroups[category], node)
+		}
+
+		// 按分类顺序输出节点
+		for _, category := range categories {
+			// 去掉分类中的 " - 查询节点" 后缀
+			cleanCategory := strings.Replace(category, " - 查询节点", "", -1)
+			content.WriteString(fmt.Sprintf("- **%s**\n", cleanCategory))
+			nodes := categoryGroups[category]
+			for _, node := range nodes {
+				content.WriteString(fmt.Sprintf("  - **%s**\n", node.Name))
+			}
+			content.WriteString("\n")
 		}
 	}
 
@@ -280,35 +317,27 @@ func (s *GenshinStarcraftMCPServer) handleGetNodeGraphDetails(ctx context.Contex
 	// 格式化返回内容
 	content := fmt.Sprintf("# %s\n\n**描述**: %s\n\n", details.NodeName, details.Description)
 
-	if len(details.Parameters) > 0 {
-		content += "**参数**:\n"
-		for _, param := range details.Parameters {
-			required := "可选"
-			if param.Required {
-				required = "必需"
-			}
-			content += fmt.Sprintf("- **%s** (%s): %s\n", param.Name, param.Type, param.Description)
-			if param.Default != "" {
-				content += fmt.Sprintf("  默认值: %s\n", param.Default)
-			}
-			content += fmt.Sprintf("  [%s]\n", required)
-		}
-		content += "\n"
-	}
+	// 创建markdown表格
+	if len(details.Inputs) > 0 || len(details.Outputs) > 0 {
+		content += "**参数表格**:\n\n"
+		content += "| 参数类型 | 参数名 | 类型 | 说明 |\n"
+		content += "|---------|--------|------|------|\n"
 
-	if len(details.Inputs) > 0 {
-		content += "**输入**:\n"
+		// 先添加入参
 		for _, input := range details.Inputs {
-			content += fmt.Sprintf("- **%s** (%s): %s\n", input.Name, input.Type, input.Description)
+			content += fmt.Sprintf("| 入参 | **%s** | %s | %s |\n", input.Name, input.Type, input.Description)
 		}
-		content += "\n"
-	}
 
-	if len(details.Outputs) > 0 {
-		content += "**输出**:\n"
+		// 再添加出参
 		for _, output := range details.Outputs {
-			content += fmt.Sprintf("- **%s** (%s): %s\n", output.Name, output.Type, output.Description)
+			content += fmt.Sprintf("| 出参 | **%s** | %s | %s |\n", output.Name, output.Type, output.Description)
 		}
+
+		// 最后添加其他参数
+		for _, param := range details.Parameters {
+			content += fmt.Sprintf("| 其他 | **%s** | %s | %s |\n", param.Name, param.Type, param.Description)
+		}
+
 		content += "\n"
 	}
 
