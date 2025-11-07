@@ -46,20 +46,22 @@ jobs:
         cd build
 
         # Windows
-        zip ../genshin-starcraft-mcp-${version}_windows-amd64.zip genshin-starcraft-mcp-windows.exe
+        zip genshin-starcraft-mcp-${version}_windows-amd64.zip genshin-starcraft-mcp-windows.exe
 
         # Linux
-        tar -czf ../genshin-starcraft-mcp-${version}_linux-amd64.tar.gz genshin-starcraft-mcp-linux
+        tar -czf genshin-starcraft-mcp-${version}_linux-amd64.tar.gz genshin-starcraft-mcp-linux
 
         # macOS Intel
-        tar -czf ../genshin-starcraft-mcp-${version}_darwin-amd64.tar.gz genshin-starcraft-mcp-macos
+        tar -czf genshin-starcraft-mcp-${version}_darwin-amd64.tar.gz genshin-starcraft-mcp-macos
 
         # macOS Apple Silicon
-        tar -czf ../genshin-starcraft-mcp-${version}_darwin-arm64.tar.gz genshin-starcraft-mcp-macos-arm64
+        tar -czf genshin-starcraft-mcp-${version}_darwin-arm64.tar.gz genshin-starcraft-mcp-macos-arm64
 
     - name: Upload release assets
-      uses: alexellis/upload-assets@0.2.2
+      uses: "marvinpinto/action-automatic-releases@latest"
       with:
-        asset_paths: '["./genshin-starcraft-mcp-*.zip", "./genshin-starcraft-mcp-*.tar.gz"]'
-      env:
-        GITHUB_TOKEN: ${{ github.token }}
+        repo_token: "${{ secrets.GITHUB_TOKEN }}"
+        prerelease: false
+        files: |
+          *.zip
+          *.tar.gz
