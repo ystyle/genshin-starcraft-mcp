@@ -62,4 +62,4 @@ jobs:
       with:
         asset_paths: '["./genshin-starcraft-mcp-*.zip", "./genshin-starcraft-mcp-*.tar.gz"]'
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ github.token }}
