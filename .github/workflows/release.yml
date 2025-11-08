@@ -60,6 +60,7 @@ jobs:
 
         # macOS Apple Silicon
         tar -czf genshin-starcraft-mcp-${version}_darwin-arm64.tar.gz genshin-starcraft-mcp-macos-arm64
+        ls -R
 
     - name: Upload release assets
       uses: softprops/action-gh-release@v1
