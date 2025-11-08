@@ -27,9 +27,9 @@ jobs:
 
     - name: Build binaries
       run: |
-        # 获取版本信息
-        hash=$(git rev-list --tags --max-count=1)
-        version=$(git describe --tags $hash)
+        # 使用GitHub Actions提供的tag名称作为版本
+        version="${{ github.ref_name }}"
+        echo "Building version: $version"
 
         # 设置构建标志
         ldflags="-s -w -X main.version=$version"
@@ -42,9 +42,9 @@ jobs:
 
     - name: Create release archives
       run: |
-        # 获取版本信息
-        hash=$(git rev-list --tags --max-count=1)
-        version=$(git describe --tags $hash)
+        # 使用GitHub Actions提供的tag名称作为版本
+        version="${{ github.ref_name }}"
+        echo "Creating archives for version: $version"
 
         # 创建压缩包
         cd build
@@ -60,13 +60,20 @@ jobs:
 
         # macOS Apple Silicon
         tar -czf genshin-starcraft-mcp-${version}_darwin-arm64.tar.gz genshin-starcraft-mcp-macos-arm64
-        ls -R
+
+        # 移动文件到根目录
+        mv genshin-starcraft-mcp-*.zip ..
+        mv genshin-starcraft-mcp-*.tar.gz ..
+
+        ls -R ..
 
     - name: Upload release assets
       uses: softprops/action-gh-release@v1
       with:
         files: |
-          genshin-starcraft-mcp-*.zip
-          genshin-starcraft-mcp-*.tar.gz
+          genshin-starcraft-mcp-${{ github.ref_name }}_windows-amd64.zip
+          genshin-starcraft-mcp-${{ github.ref_name }}_linux-amd64.tar.gz
+          genshin-starcraft-mcp-${{ github.ref_name }}_darwin-amd64.tar.gz
+          genshin-starcraft-mcp-${{ github.ref_name }}_darwin-arm64.tar.gz
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
